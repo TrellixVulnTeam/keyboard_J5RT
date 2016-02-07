@@ -1,97 +1,165 @@
-//import pygame
-
-var noteArr = [
-	'static/media/0C.ogg',
-	'static/media/0Cs.ogg',
-	'static/media/0D.ogg',
-	'static/media/0Ds.ogg',
-	'static/media/0E.ogg',
-	'static/media/0F.ogg',
-	'static/media/0Fs.ogg',
-	'static/media/0G.ogg',
-	'static/media/0Gs.ogg',
-	'static/media/0A.ogg',
-	'static/media/0As.ogg',
-	'static/media/0B.ogg',
-	'static/media/1C.ogg',
-	'static/media/1Cs.ogg',
-	'static/media/1D.ogg',
-	'static/media/1Ds.ogg',
-	'static/media/1E.ogg',
-	'static/media/1F.ogg',
-	'static/media/1Fs.ogg',
-	'static/media/1G.ogg',
-];
-
+//SETS UP ORDER OF CHARACTERS
 var letterArr = [
-{'key': 'CapsLock', 
-'file': ''},		//C
-{'key': 'q', 				//(q and shift)
-'file': ''},		//C sharp / D flat
+{'key': 'CapsLock', //for instance, in the key of C, this would be C
+'note': ''},		
+{'key': 'q', 				//(q and shift, both)
+'note': ''},		//in the key of C, these would be C sharp / D flat
 {'key': 'a', 
-'file': ''},		//D
+'note': ''},		//D
 {'key': 'w',  				//(w and z)
-'file': ''},		//D sharp / E flat
+'note': ''},		//D sharp / E flat
 {'key': 's', 				//(s and x)
-'file': ''},		//E
+'note': ''},		//E
 {'key': 'e', 				//(e and d)
-'file': ''},		//F
+'note': ''},		//F
 {'key': 'r', 				//(r and c)
-'file': ''},		//F sharp / G flat
+'note': ''},		//F sharp / G flat
 {'key': 'f', 
-'file': ''},		//G
+'note': ''},		//G
 {'key': 't', 				//(t and v)
-'file': ''},		//G sharp / A flat
+'note': ''},		//G sharp / A flat
 {'key': 'g', 
-'file': ''},		//A
+'note': ''},		//A
 {'key': 'y', 				//(y and b)
-'file': ''},		//A sharp / B flat
+'note': ''},		//A sharp / B flat
 {'key': 'h', 				//(h and n)
-'file': ''},		//B
+'note': ''},		//B
 {'key': 'u', 				//(u and j)
-'file': ''},		//C
+'note': ''},		//C
 {'key': 'i', 				//(i and m)
-'file': ''},		//C sharp / D flat
+'note': ''},		//C sharp / D flat
 {'key': 'k', 
-'file': ''},		//D
+'note': ''},		//D
 {'key': 'o', 				//(o and ,)
-'file': ''},		//D sharp / E flat
+'note': ''},		//D sharp / E flat
 {'key': 'l', 				//(l and .)
-'file': ''},		//E
+'note': ''},		//E
 {'key': ';', 				//(; and p)
-'file': ''},		//F
+'note': ''},		//F
 {'key': '[', 				//([ and /])
-'file': ''},		//F sharp / G flat
+'note': ''},		//F sharp / G flat
 {'key': '\'', 
-'file': ''},		//G
+'note': ''},		//G
 ];
 
-chosenIndex = document.getElementById('selection').value;
-console.log(chosenIndex);
-var startIndex = 0;
-
-
-//Setting keys.
-for(var i = 0; i < 20; i++)
+function setKey()
 {
-	letterArr[i].file = noteArr[startIndex+i];
+	var startNote = 'C4';
+	startNote = document.getElementById('selection').value;
+	console.log("Start note: " + startNote);
+
+	letterArr[0].note = startNote;
+	//Setting keys.
+	for(var i = 1; i < 20; i++)
+	{
+		letterArr[i].note = nextNote(letterArr[i-1].note);
+	}
+}
+var AUD = new Wad({source : 'sine'});
+window.addEventListener('keydown', function (choice) {
+	/*var bell = new Wad({source : 'static/media/0C.ogg'})
+	bell.play()
+	bell.stop() */
+	console.log("key down.");
+
+	press = synthInput(choice.key);
+	console.log("press: " + press);
+
+	var noteVal = "";
+	for(var i = 0; i < letterArr.length; i++)
+	{
+		if (letterArr[i].key.localeCompare(press) == 0) //they match
+		{
+			noteVal = letterArr[i].note;
+			break;
+		}
+		else
+		{
+
+		}
+	}
+	console.log("noteVal: " + noteVal);
+
+	AUD.play({
+	    volume  : 0.8,
+	    wait    : 0,     // Time in seconds between calling play() and actually triggering the note.
+	    loop    : false, // This overrides the value for loop on the constructor, if it was set. 
+	    pitch   : noteVal,  // A4 is 440 hertz.
+	    label   : noteVal,   // A label that identifies this note.
+	    env     : {hold : 9001},
+	    panning : [1, -1, 10],
+	    filter  : {frequency : 900},
+	    delay   : {delayTime : .8}
+	});
+
+
+
+	window.addEventListener('keyup', function(){
+		console.log("key up.");
+		AUD.stop(noteVal);
+	}, false);
+
+}, false);
+
+function nextNote(currentNote)
+{
+	var noteCode = currentNote.charCodeAt(0);
+	var accidental;
+	var octaveCode;
+	if (currentNote.indexOf('#')==-1) //If -1, means false. no accidental
+	{
+		accidental = '';
+		octaveCode = currentNote.charCodeAt(1);
+	}
+	else
+	{
+		accidental = '#';
+		octaveCode = currentNote.charCodeAt(2);
+	}
+
+	if (noteCode == 67 && octaveCode==56) //C8 is highest possible note
+	{
+
+	}
+	else if (accidental.localeCompare('#')!=0)//Don't match. It's not an accidental,
+	{
+		if (noteCode==66 || noteCode==69) //If it's B or E,
+		{
+			noteCode++;
+		}
+		else
+		{
+			accidental='#';
+		}
+	}
+	else //It is an accidental
+	{
+		accidental='';
+		if (noteCode==71) //G#
+		{
+			noteCode = 65;
+			octaveCode++;
+		}
+		else
+		{
+			noteCode++;
+		}
+	}
+
+	var noteName = String.fromCharCode(noteCode) + accidental + String.fromCharCode(octaveCode);
+	return noteName;
 }
 
-
-'use strict';
-var audioElement = document.createElement('audio');
-window.addEventListener('keydown', function (choice) {
-
-	press = choice.key;
+function synthInput(press)
+{
 	console.log("press original assignment: " + press);
 	console.log("press char code: " + press.charCodeAt(0));
 	//ACCOUNTING FOR capitalization
 	if (press.charCodeAt(0) > 64 && press.charCodeAt(0) < 91 && press!='CapsLock') //if a capital letter,
 	{
-		console.log("old press: " + press);
 		press = String.fromCharCode(press.charCodeAt(0) + 32);
-		console.log("new press: " + press);
 	}
+	console.log("press before switch: " + press);
 	//ACCOUNTING FOR (assigning) duplicates.
 	switch(press)
 	{
@@ -138,27 +206,57 @@ window.addEventListener('keydown', function (choice) {
 			press = '[';
 			break;
 	}
-	for(var i = 0; i < letterArr.length; i++)
+	console.log("press after switch: " + press);
+	return press;
+}
+
+/*
+function prevNote(currentNote)
+{
+	var noteCode = currentNote.charCodeAt(0);
+	var accidental;
+	var octaveCode;
+	if (currentNote.indexOf('#')==-1) //If -1, means false.
 	{
-		if (letterArr[i].key.localeCompare(press) == 0) //they match
+		accidental = '';
+		octaveCode = currentNote.charCodeAt(1);
+	}
+	else
+	{
+		accidental = '#';
+		octaveCode = currentNote.charCodeAt(2);
+	}
+
+	if (noteCode == 65 && octaveCode==48) //A0 is lowest possible note
+	{
+
+	}
+	else if (accidental.localeCompare('#')!=0)//Don't match. It's not an accidental,
+	{
+		if (noteCode == (67 || 70)) //If it's C or F,
 		{
-			audioElement.setAttribute('src', letterArr[i].file);
-			break;
+			noteCode--;
 		}
 		else
 		{
-
+			accidental='#';
+			if (noteCode==65) //A
+			{
+				noteCode = 71;
+				octaveCode--;
+			}
+			else
+			{
+				noteCode--;
+			}
 		}
-
 	}
-	console.log("source: " + audioElement.src);
-	audioElement.play();
-}, false);
+	else //It is an accidental
+	{
+		accidental='';
+		noteCode--;
+	}
 
-/*
-window.addEventListener('keyup', function(){
-	var release = window.value;
-	audioElement.setAttribute('src', 'static/media/0A.ogg');
-	audioElement.play();
-}, false);
-*/
+	var noteName = String.fromCharCode(noteCode) + accidental + String.fromCharCode(noteCode);
+	return noteName;
+}*/
